@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>LyricFlow — Live Synced Lyrics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+</head>
+
+<!-- 
+  DESKTOP: Full 2-column layout. Header + search always visible. Left=album art+meta, Right=lyrics, Bottom dock.
+  MOBILE:  Full-screen lyrics only. Compact floating bar at bottom. No header search.
+  JS detects via isMobile() helper using screen width + user agent.
+-->
+
+<body class="theme-dark" id="appBody">
+  <!-- Atmospheric Background -->
+  <div class="atm-bg" id="atmBg"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       DESKTOP LAYOUT  (hidden on mobile via CSS)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="desktop-shell" id="desktopShell">
+
+    <!-- Desktop Header -->
+    <header class="d-header">
+      <div class="d-brand" id="dBrandBtn">
+        <div class="d-brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+        </div>
+        <span class="d-brand-name">LyricFlow</span>
+      </div>
+
+      <div class="d-search-wrap">
+        <svg class="d-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="dSearchInput" class="d-search-input" placeholder="Search artist or song title..." autocomplete="off">
+        <button id="dSearchBtn" class="d-search-btn" aria-label="Search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <div class="d-header-actions">
+        <button id="dPhoneBtn" class="d-phone-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+          </svg>
+          Open on Phone
+        </button>
+      </div>
+    </header>
+
+    <!-- Desktop Content Area -->
+    <div class="d-content" id="dContent">
+
+      <!-- ── DESKTOP HERO (listen / idle state) ── -->
+      <div class="d-hero" id="dHero">
+        <div class="d-hero-inner">
+
+          <div class="d-orb-wrap">
+            <div class="d-ripples" id="dRipples">
+              <span class="d-ripple"></span>
+              <span class="d-ripple"></span>
+              <span class="d-ripple"></span>
+            </div>
+            <button class="d-orb" id="dOrbBtn" aria-label="Tap to identify music">
+              <svg class="d-orb-mic" id="dMicIcon" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+              <svg class="d-orb-spin hidden" id="dSpinIcon" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              <span class="d-orb-label" id="dOrbLabel">TAP TO LISTEN</span>
+            </button>
+          </div>
+
+          <div class="d-hero-text">
+            <h1 class="d-hero-title" id="dHeroTitle">Identify Music Playing Around You</h1>
+            <p class="d-hero-sub" id="dHeroSub">Play any song near your mic. LyricFlow pinpoints the track, finds synced lyrics, and auto-scrolls in real time — perfectly in time with the music.</p>
+            <canvas class="d-visualizer hidden" id="dVisualizer" width="340" height="28"></canvas>
+          </div>
+
+          <div class="d-demo-section">
+            <p class="d-demo-label">Or jump straight in with a popular track:</p>
+            <div class="d-demo-pills" id="dDemoPills">
+              <button class="d-pill" data-title="Blinding Lights" data-artist="The Weeknd">Blinding Lights</button>
+              <button class="d-pill" data-title="Bohemian Rhapsody" data-artist="Queen">Bohemian Rhapsody</button>
+              <button class="d-pill" data-title="Flowers" data-artist="Miley Cyrus">Flowers</button>
+              <button class="d-pill" data-title="Someone Like You" data-artist="Adele">Someone Like You</button>
+              <button class="d-pill" data-title="Yellow" data-artist="Coldplay">Yellow</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── DESKTOP PLAYER (now-playing state) ── -->
+      <div class="d-player hidden" id="dPlayer">
+
+        <!-- Left column: Album art + meta -->
+        <div class="d-left">
+          <div class="d-art-frame">
+            <img id="dArtwork" src="" alt="Album Art" class="d-art-img">
+            <div class="d-art-glow"></div>
+          </div>
+          <div class="d-meta">
+            <h2 class="d-meta-title" id="dTrackTitle">Song Title</h2>
+            <p class="d-meta-artist" id="dTrackArtist">Artist</p>
+            <p class="d-meta-album" id="dTrackAlbum">Album</p>
+          </div>
+          <button class="d-relisten-btn" id="dRelistenBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            </svg>
+            Listen to New Song
+          </button>
+        </div>
+
+        <!-- Right column: Lyrics -->
+        <div class="d-lyrics-col">
+          <div class="d-lyrics-topbar">
+            <span class="d-source-tag" id="dSourceTag">LRCLIB Synced</span>
+            <span class="d-live-badge" id="dLiveBadge">
+              <span class="d-live-dot"></span>
+              <span id="dLiveText">Live Ambient</span>
+            </span>
+          </div>
+
+          <div class="d-lyrics-vp" id="dLyricsVp">
+            <div class="d-fade-top"></div>
+            <div class="d-lyrics-stream" id="dLyricsStream"></div>
+            <div class="d-fade-bot"></div>
+            <button class="d-resume-pill hidden" id="dResumePill">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              Follow lyrics
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /d-content -->
+
+    <!-- Desktop Bottom Dock -->
+    <footer class="d-dock hidden" id="dDock">
+      <div class="d-dock-left">
+        <img id="dDockArt" src="" alt="" class="d-dock-art">
+        <div class="d-dock-titles">
+          <span class="d-dock-title" id="dDockTitle">—</span>
+          <span class="d-dock-artist" id="dDockArtist">—</span>
+        </div>
+      </div>
+
+      <div class="d-dock-center">
+        <div class="d-dock-btns">
+          <button class="d-nudge-btn" id="dNudgeBack" title="Back 2s">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+            <span>-2s</span>
+          </button>
+          <button class="d-nudge-btn" id="dMicroBack" title="Nudge back 0.5s">
+            <span>-0.5s</span>
+          </button>
+          <button class="d-play-btn" id="dPlayBtn">
+            <svg id="dPlayIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg id="dPauseIcon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+          <button class="d-nudge-btn" id="dMicroFwd" title="Nudge forward 0.5s">
+            <span>+0.5s</span>
+          </button>
+          <button class="d-nudge-btn" id="dNudgeFwd" title="Forward 2s">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+            <span>+2s</span>
+          </button>
+        </div>
+        <div class="d-timeline-row">
+          <span class="d-time" id="dCurrentTime">0:00</span>
+          <div class="d-timeline" id="dTimeline">
+            <div class="d-timeline-fill" id="dTimelineFill"></div>
+          </div>
+          <span class="d-time" id="dDuration">0:00</span>
+        </div>
+      </div>
+
+      <div class="d-dock-right">
+        <!-- placeholder for balance -->
+      </div>
+    </footer>
+
+  </div><!-- /desktop-shell -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MOBILE LAYOUT  (hidden on desktop via CSS)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="mobile-shell" id="mobileShell">
+
+    <!-- Mobile Hero Screen -->
+    <div class="m-hero" id="mHero">
+      <div class="m-hero-logo">
+        <div class="m-logo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+        </div>
+        <span class="m-logo-name">LyricFlow</span>
+      </div>
+
+      <div class="m-orb-area">
+        <div class="m-ripples" id="mRipples">
+          <span class="m-ripple"></span>
+          <span class="m-ripple"></span>
+          <span class="m-ripple"></span>
+        </div>
+        <button class="m-orb" id="mOrbBtn">
+          <svg class="m-orb-mic" id="mMicIcon" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+          <svg class="m-orb-spin hidden" id="mSpinIcon" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+          <span class="m-orb-label" id="mOrbLabel">TAP TO LISTEN</span>
+        </button>
+      </div>
+
+      <div class="m-hero-text">
+        <h1 class="m-hero-title" id="mHeroTitle">Identify Music Around You</h1>
+        <p class="m-hero-sub" id="mHeroSub">Play any song near your phone. LyricFlow recognizes it and auto-scrolls the lyrics in sync.</p>
+        <canvas class="m-visualizer hidden" id="mVisualizer" width="260" height="24"></canvas>
+      </div>
+
+      <div class="m-search-wrap">
+        <input type="text" id="mSearchInput" class="m-search-input" placeholder="Or search a song..." autocomplete="off">
+        <button id="mSearchBtn" class="m-search-btn">Search</button>
+      </div>
+    </div>
+
+    <!-- Mobile Player Screen (full lyrics) -->
+    <div class="m-player hidden" id="mPlayer">
+      <div class="m-lyrics-vp" id="mLyricsVp">
+        <div class="m-fade-top"></div>
+        <div class="m-lyrics-stream" id="mLyricsStream"></div>
+        <div class="m-fade-bot"></div>
+        <button class="m-resume-pill hidden" id="mResumePill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          Follow lyrics
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Bottom Bar (always visible once player shows) -->
+    <div class="m-bar hidden" id="mBar">
+      <div class="m-bar-left">
+        <img id="mBarArt" src="" alt="" class="m-bar-art">
+        <div class="m-bar-info">
+          <span class="m-bar-title" id="mBarTitle">—</span>
+          <span class="m-bar-artist" id="mBarArtist">—</span>
+        </div>
+      </div>
+      <div class="m-bar-controls">
+        <button class="m-bar-play" id="mPlayBtn">
+          <svg id="mPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <svg id="mPauseIcon" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+        <button class="m-bar-listen" id="mRelistenBtn" title="Listen to new song">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /mobile-shell -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SHARED: Phone Modal (desktop only but kept here)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay hidden" id="phoneModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📱 Open on Your Phone</h3>
+        <button class="modal-close" id="closePhoneModal">✕</button>
+      </div>
+      <p class="modal-desc">Scan with your phone camera or tap the link to open LyricFlow with full mic access via secure HTTPS.</p>
+      <div class="modal-qr">
+        <img id="qrCodeImg" src="" alt="QR Code">
+      </div>
+      <div class="modal-url-row">
+        <span class="modal-url-badge">🔒 Secure HTTPS</span>
+        <div class="modal-url-input-row">
+          <input type="text" id="phoneUrlInput" readonly value="">
+          <button id="copyUrlBtn" class="modal-copy-btn">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden audio element for preview playback -->
+  <audio id="previewAudio" preload="none"></audio>
+
+  <script src="app.js"></script>
+</body>
+</html>
