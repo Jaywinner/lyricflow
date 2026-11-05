@@ -973,6 +973,11 @@ class LyricFlowApp {
       else break;
     }
 
+    // Keep the first lyric centered while recognition is still before its
+    // timestamp. Without an active line, mobile has no anchor for the stream
+    // transform and falls back to showing the lyric list from the top.
+    if (newIdx < 0) newIdx = 0;
+
     if (newIdx === this.activeIndex && !force) return;
     this.activeIndex = newIdx;
 
